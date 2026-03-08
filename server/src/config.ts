@@ -131,11 +131,14 @@ export function loadConfig(): Config {
       ? (authBaseUrlModeFromEnvRaw as AuthBaseUrlMode)
       : null;
   const publicUrlFromEnv = process.env.PAPERCLIP_PUBLIC_URL;
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  const vercelPublicUrl = vercelUrl ? `https://${vercelUrl}` : undefined;
   const authPublicBaseUrlRaw =
     process.env.PAPERCLIP_AUTH_PUBLIC_BASE_URL ??
     process.env.BETTER_AUTH_URL ??
     process.env.BETTER_AUTH_BASE_URL ??
     publicUrlFromEnv ??
+    vercelPublicUrl ??
     fileConfig?.auth?.publicBaseUrl;
   const authPublicBaseUrl = authPublicBaseUrlRaw?.trim() || undefined;
   const authBaseUrlMode: AuthBaseUrlMode =
