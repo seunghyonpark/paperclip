@@ -1,0 +1,35 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "ui/dist",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/((?!api/|assets/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "env": {
+    "PAPERCLIP_DEPLOYMENT_MODE": "authenticated",
+    "PAPERCLIP_DEPLOYMENT_EXPOSURE": "public",
+    "PAPERCLIP_AUTH_BASE_URL_MODE": "explicit",
+    "PAPERCLIP_DB_BACKUP_ENABLED": "false",
+    "HEARTBEAT_SCHEDULER_ENABLED": "false",
+    "PAPERCLIP_ENABLE_COMPANY_DELETION": "false",
+    "PAPERCLIP_HOME": "/tmp/paperclip",
+    "VITE_DISABLE_LIVE_UPDATES": "true"
+  }
+}

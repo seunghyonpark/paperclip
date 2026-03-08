@@ -10,6 +10,7 @@ import { queryKeys } from "../lib/queryKeys";
 const TOAST_COOLDOWN_WINDOW_MS = 10_000;
 const TOAST_COOLDOWN_MAX = 3;
 const RECONNECT_SUPPRESS_MS = 2000;
+const LIVE_UPDATES_DISABLED = import.meta.env.VITE_DISABLE_LIVE_UPDATES === "true";
 
 function readString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
@@ -516,6 +517,7 @@ export function LiveUpdatesProvider({ children }: { children: ReactNode }) {
   const currentUserId = session?.user?.id ?? session?.session?.userId ?? null;
 
   useEffect(() => {
+    if (LIVE_UPDATES_DISABLED) return;
     if (!selectedCompanyId) return;
 
     let closed = false;
