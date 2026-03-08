@@ -4,8 +4,7 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "ui/dist",
   "functions": {
-    "api/index.ts": {
-      "runtime": "nodejs22.x",
+    "api/index.js": {
       "maxDuration": 60
     }
   },
