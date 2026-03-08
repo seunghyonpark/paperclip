@@ -1,19 +1,23 @@
-import type { Request as ExpressRequest, RequestHandler } from "express";
 import {
   createDb,
   inspectMigrations,
   applyPendingMigrations,
   reconcilePendingMigrationHistory,
-} from "../packages/db/src/index.ts";
-import { createApp } from "../server/src/app.ts";
-import { createBetterAuthHandler, createBetterAuthInstance, deriveAuthTrustedOrigins, resolveBetterAuthSession } from "../server/src/auth/better-auth.ts";
-import { initializeBoardClaimChallenge } from "../server/src/board-claim.ts";
-import { loadConfig } from "../server/src/config.ts";
-import { createStorageServiceFromConfig } from "../server/src/storage/index.ts";
+} from "../packages/db/dist/index.js";
+import { createApp } from "../server/dist/app.js";
+import {
+  createBetterAuthHandler,
+  createBetterAuthInstance,
+  deriveAuthTrustedOrigins,
+  resolveBetterAuthSession,
+} from "../server/dist/auth/better-auth.js";
+import { initializeBoardClaimChallenge } from "../server/dist/board-claim.js";
+import { loadConfig } from "../server/dist/config.js";
+import { createStorageServiceFromConfig } from "../server/dist/storage/index.js";
 
-let appPromise: Promise<RequestHandler> | null = null;
+let appPromise = null;
 
-async function ensureDatabaseMigrations(connectionString: string) {
+async function ensureDatabaseMigrations(connectionString) {
   let state = await inspectMigrations(connectionString);
   if (state.status === "needsMigrations" && state.reason === "pending-migrations") {
     const repair = await reconcilePendingMigrationHistory(connectionString);
@@ -29,7 +33,7 @@ async function ensureDatabaseMigrations(connectionString: string) {
   await applyPendingMigrations(connectionString);
 }
 
-async function createRequestHandler(): Promise<RequestHandler> {
+async function createRequestHandler() {
   const config = loadConfig();
 
   if (!config.databaseUrl) {
@@ -59,15 +63,15 @@ async function createRequestHandler(): Promise<RequestHandler> {
     .map((value) => value.trim())
     .filter((value) => value.length > 0);
   const effectiveTrustedOrigins = Array.from(new Set([...trustedOrigins, ...envTrustedOrigins]));
-  const auth = createBetterAuthInstance(db as never, config, effectiveTrustedOrigins);
+  const auth = createBetterAuthInstance(db, config, effectiveTrustedOrigins);
   const betterAuthHandler = createBetterAuthHandler(auth);
-  const resolveSession = (req: ExpressRequest) => resolveBetterAuthSession(auth, req);
+  const resolveSession = (req) => resolveBetterAuthSession(auth, req);
 
-  await initializeBoardClaimChallenge(db as never, {
+  await initializeBoardClaimChallenge(db, {
     deploymentMode: config.deploymentMode,
   });
 
-  const app = await createApp(db as never, {
+  return createApp(db, {
     uiMode: "none",
     storageService: createStorageServiceFromConfig(config),
     deploymentMode: config.deploymentMode,
@@ -79,8 +83,6 @@ async function createRequestHandler(): Promise<RequestHandler> {
     betterAuthHandler,
     resolveSession,
   });
-
-  return app as unknown as RequestHandler;
 }
 
 async function getRequestHandler() {
@@ -90,7 +92,7 @@ async function getRequestHandler() {
   return appPromise;
 }
 
-export default async function handler(req: ExpressRequest, res: Parameters<RequestHandler>[1]) {
+export default async function handler(req, res) {
   try {
     const app = await getRequestHandler();
     return app(req, res, () => undefined);
